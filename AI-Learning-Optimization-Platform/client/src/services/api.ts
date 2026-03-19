@@ -33,6 +33,12 @@ export const getSummary = () => API.get('/analytics/summary');
 export const getAllSessions = () => API.get('/analytics');
 export const logSession = (data: object) => API.post('/analytics', data);
 export const deleteSession = (id: string) => API.delete(`/analytics/${id}`);
+export const getStudyStats = () => API.get('/analytics/summary');
+export const getDetailedAnalytics = () => API.get('/analytics/weekly');
 
-// AI Generation
+// AI Generation (legacy)
 export const generateAiPlan = (data: { prompt: string; subject: string; timeframeDays: number }) => API.post('/ai/generate-plan', data);
+
+// AI Coach (used in ProgressCoach page)
+export const getCoachAdvice = (stats: any, struggle: string) => API.post('/ai/coach', { stats, struggle });
+

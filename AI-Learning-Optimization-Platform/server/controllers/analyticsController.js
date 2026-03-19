@@ -109,33 +109,71 @@ const getSummary = async (req, res) => {
         const sessions = await Analytics.find({ user: req.userId });
 
         const totalSessions = sessions.length;
-        const totalHours = sessions.reduce((sum, s) => sum + s.hoursStudied, 0);
+        // totalDuration in MINUTES (frontend expects this)
+        const totalDuration = sessions.reduce((sum, s) => sum + (s.hoursStudied * 60), 0);
         const totalTopics = sessions.reduce((sum, s) => sum + s.topicsCompleted.length, 0);
 
-        const scoresWithValues = sessions.filter(s => s.quizScore !== null);
-        const avgQuizScore = scoresWithValues.length
-            ? (scoresWithValues.reduce((sum, s) => sum + s.quizScore, 0) / scoresWithValues.length).toFixed(1)
-            : null;
+        const focusWithValues = sessions.filter(s => s.focusRating !== null && s.focusRating !== undefined);
+        const averageFocus = focusWithValues.length
+            ? parseFloat((focusWithValues.reduce((sum, s) => sum + s.focusRating, 0) / focusWithValues.length).toFixed(1))
+            : 0;
 
-        const focusWithValues = sessions.filter(s => s.focusRating !== null);
-        const avgFocusRating = focusWithValues.length
-            ? (focusWithValues.reduce((sum, s) => sum + s.focusRating, 0) / focusWithValues.length).toFixed(1)
-            : null;
-
-        const user = await User.findById(req.userId).select('xp streak badges');
+        const user = await User.findById(req.userId).select('xp streak badges level');
+        const xp = user?.xp || 0;
+        const level = Math.floor(xp / 1000) + 1;
 
         res.json({
             totalSessions,
-            totalHoursStudied: totalHours,
+            totalDuration,          // minutes — used by Dashboard & Analytics
             totalTopicsCompleted: totalTopics,
-            averageQuizScore: avgQuizScore,
-            averageFocusRating: avgFocusRating,
-            xp: user?.xp || 0,
-            streak: user?.streak || 0,
-            badges: user?.badges || []
+            averageFocus,           // number — used by Dashboard
+            gamification: {
+                xp,
+                streak: user?.streak || 0,
+                level,
+                badges: user?.badges || []
+            }
         });
     } catch (error) {
         console.error('Error in getSummary:', error.message);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// @desc    Get last 7 days study hours for the Analytics chart
+// @route   GET /api/analytics/weekly
+// @access  Private
+const getWeeklyChart = async (req, res) => {
+    try {
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+        // Build last 7 days array
+        const last7 = Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(today);
+            d.setDate(d.getDate() - (6 - i));
+            return d;
+        });
+
+        const startDate = new Date(last7[0]);
+        startDate.setHours(0, 0, 0, 0);
+
+        const sessions = await Analytics.find({
+            user: req.userId,
+            date: { $gte: startDate }
+        });
+
+        const chart = last7.map(day => {
+            const dayStr = day.toISOString().split('T')[0];
+            const daySessions = sessions.filter(s => {
+                return new Date(s.date).toISOString().split('T')[0] === dayStr;
+            });
+            const hours = daySessions.reduce((sum, s) => sum + s.hoursStudied, 0);
+            return { name: dayNames[day.getDay()], hours: parseFloat(hours.toFixed(1)) };
+        });
+
+        res.json({ weeklyChart: chart });
+    } catch (error) {
+        console.error('Error in getWeeklyChart:', error.message);
         res.status(500).json({ message: 'Server error' });
     }
 };
@@ -167,5 +205,6 @@ module.exports = {
     getAllSessions,
     getSessionsByPlan,
     getSummary,
+    getWeeklyChart,
     deleteSession
 };

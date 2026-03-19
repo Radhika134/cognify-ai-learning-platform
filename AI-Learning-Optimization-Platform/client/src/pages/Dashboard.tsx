@@ -1,154 +1,106 @@
-import { useEffect, useState } from 'react';
-import { getStudyPlans, getSummary } from '../services/api';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import PageHeader from '../components/layout/PageHeader';
+import StatCard from '../components/ui/StatCard';
+import AiFeatureCard from '../components/ui/AiFeatureCard';
+import XpBanner from '../components/ui/XpBanner';
+import { getStudyStats, getStudyPlans } from '../services/api';
 
-export default function Dashboard({ userName }: { userName: string }) {
-    const [plans, setPlans] = useState<any[]>([]);
-    const [summary, setSummary] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+interface DashboardProps {
+    userName: string;
+}
+
+export default function Dashboard({ userName }: DashboardProps) {
+    const [stats, setStats] = useState({
+        totalHours: 0,
+        topicsCompleted: 0,
+        averageFocus: 0,
+        totalSessions: 0,
+        xp: 0,
+        level: 1,
+        streak: 0,
+        maxLevelXp: 1000
+    });
+    const [activePlanCount, setActivePlanCount] = useState(0);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchDashboardData = async () => {
             try {
-                const [plansRes, summaryRes] = await Promise.all([getStudyPlans(), getSummary()]);
-                setPlans(plansRes.data);
-                setSummary(summaryRes.data);
+                const statsData = await getStudyStats();
+                const plansData = await getStudyPlans();
+                
+                const s = statsData.data;
+                const totalDuration = s.totalDuration ?? 0;
+                const hours = (totalDuration / 60).toFixed(1);
+                // DB stores status as lowercase 'active'
+                const activePlans = plansData.data.filter((p: any) =>
+                    p.status?.toLowerCase() === 'active'
+                ).length;
+
+                setStats({
+                    totalHours: parseFloat(hours),
+                    topicsCompleted: s.totalTopicsCompleted ?? s.totalSessions ?? 0,
+                    averageFocus: s.averageFocus ?? 0,
+                    totalSessions: s.totalSessions ?? 0,
+                    xp: s.gamification?.xp ?? 0,
+                    level: s.gamification?.level ?? 1,
+                    streak: s.gamification?.streak ?? 0,
+                    maxLevelXp: 1000
+                });
+                setActivePlanCount(activePlans);
             } catch (err) {
-                console.error(err);
-            } finally {
-                setLoading(false);
+                console.error("Dashboard fetch err:", err);
             }
         };
-        fetchData();
+        fetchDashboardData();
     }, []);
 
-    const activePlans = plans.filter((p: any) => p.status === 'active');
-
-
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'Good morning';
-        if (hour < 17) return 'Good afternoon';
-        return 'Good evening';
-    };
-
-    if (loading) return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-            <div className="spinner" style={{ width: 40, height: 40, borderWidth: 3 }}></div>
-        </div>
-    );
+    const greetingObj = new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 18 ? 'Good afternoon' : 'Good evening';
 
     return (
-        <div className="animate-in">
-            <div className="page-header">
-                <div>
-                    <h2 className="page-title">{getGreeting()}, {userName}! 👋</h2>
-                    <p className="page-subtitle">Here's an overview of your learning progress.</p>
-                </div>
-                <Link to="/study-plans" className="btn btn-primary">
-                    ＋ New Study Plan
-                </Link>
+        <div>
+            <PageHeader 
+                title={`${greetingObj}, ${userName.split(' ')[0]}! 👋`} 
+                subtitle="Here's a breakdown of your learning progress."
+            />
+
+            <XpBanner xp={stats.xp} level={stats.level} streak={stats.streak} maxLevelXp={stats.maxLevelXp} />
+
+            <div className="grid-4 mb-6">
+                <StatCard title="Active Study Plans" value={activePlanCount} icon="📚" colorHint="c1" />
+                <StatCard title="Hours Studied" value={stats.totalHours.toFixed(1)} icon="⏱️" colorHint="c2" />
+                <StatCard title="Topics Covered" value={stats.topicsCompleted} icon="🎯" colorHint="c3" />
+                <StatCard title="Focus Rating" value={`${Number(stats.averageFocus).toFixed(1)}/5`} icon="🧠" colorHint="c4" />
             </div>
 
-            {/* Gamification Banner */}
-            <div className="glass-card" style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(79, 70, 229, 0.15))', border: '1px solid var(--accent-light)' }}>
-                <div style={{ display: 'flex', gap: 32, alignItems: 'center' }}>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '2.5rem', lineHeight: 1 }}>🔥</div>
-                        <div style={{ fontWeight: 600, marginTop: 8 }}>{summary?.streak || 0} Day Streak</div>
+            <div className="grid-2" style={{ gridTemplateColumns: '1fr 1fr', alignItems: 'start' }}>
+                <div className="card h-full flex col justify-between">
+                    <div>
+                        <h3 className="section-title mb-2">Continue Learning</h3>
+                        <p className="label-muted mb-4">You have {activePlanCount} active plans holding your progress.</p>
                     </div>
-                    <div style={{ width: 1, height: 60, background: 'rgba(255,255,255,0.1)' }}></div>
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ fontSize: '2.5rem', lineHeight: 1 }}>✨</div>
-                        <div style={{ fontWeight: 600, marginTop: 8 }}>{summary?.xp || 0} XP</div>
-                    </div>
-                </div>
-
-                <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 1 }}>Badges Earned</div>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap', maxWidth: 300 }}>
-                        {summary?.badges?.length > 0 ? summary.badges.map((b: string, i: number) => (
-                            <span key={i} className="badge" style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)' }}>{b}</span>
-                        )) : <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>No badges yet</span>}
-                    </div>
-                </div>
-            </div>
-
-            {/* Stats */}
-            <div className="stats-grid">
-                <div className="stat-card">
-                    <div className="stat-icon">📚</div>
-                    <div className="stat-value">{plans.length}</div>
-                    <div className="stat-label">Total Study Plans</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">⚡</div>
-                    <div className="stat-value">{activePlans.length}</div>
-                    <div className="stat-label">Active Plans</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">⏱️</div>
-                    <div className="stat-value">{summary?.totalHoursStudied ?? 0}h</div>
-                    <div className="stat-label">Hours Studied</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">🎯</div>
-                    <div className="stat-value">{summary?.averageQuizScore ?? '—'}%</div>
-                    <div className="stat-label">Avg Quiz Score</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">✅</div>
-                    <div className="stat-value">{summary?.totalTopicsCompleted ?? 0}</div>
-                    <div className="stat-label">Topics Completed</div>
-                </div>
-                <div className="stat-card">
-                    <div className="stat-icon">🔥</div>
-                    <div className="stat-value">{summary?.averageFocusRating ?? '—'}/5</div>
-                    <div className="stat-label">Avg Focus Rating</div>
-                </div>
-            </div>
-
-            {/* Active Plans Preview */}
-            <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="section-title" style={{ margin: 0 }}>Active Study Plans</h3>
-                <Link to="/study-plans" style={{ fontSize: '0.85rem', color: 'var(--accent-light)', textDecoration: 'none' }}>
-                    View all →
-                </Link>
-            </div>
-
-            {activePlans.length === 0 ? (
-                <div className="glass-card empty-state">
-                    <div className="empty-icon">📖</div>
-                    <h3>No active plans yet</h3>
-                    <p>Create your first study plan to get started on your learning journey.</p>
-                    <Link to="/study-plans" className="btn btn-primary">Create Study Plan</Link>
-                </div>
-            ) : (
-                <div className="plans-grid">
-                    {activePlans.slice(0, 3).map(plan => (
-                        <div key={plan._id} className="plan-card">
-                            <div className="plan-header">
-                                <div>
-                                    <div className="plan-title">{plan.title}</div>
-                                    <div className="plan-subject">📌 {plan.subject}</div>
-                                </div>
-                                <span className="badge badge-active">Active</span>
-                            </div>
-                            <div className="plan-meta">
-                                <span className="meta-item">⏱️ {plan.dailyHours}h/day</span>
-                                <span className="meta-item">📅 {new Date(plan.endDate).toLocaleDateString()}</span>
-                            </div>
-                            {plan.goals?.length > 0 && (
-                                <div>
-                                    {plan.goals.slice(0, 2).map((g: string, i: number) => (
-                                        <div key={i} style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: 3 }}>• {g}</div>
-                                    ))}
-                                </div>
-                            )}
+                    {activePlanCount === 0 ? (
+                        <div className="flex-1 flex col items-center justify-center p-6 border-dashed border-2" style={{ borderColor: 'var(--border)', borderRadius: '12px' }}>
+                            <div className="text-4xl mb-4">✨</div>
+                            <div className="mb-4 text-center">No active plans right now.</div>
+                            <a href="/ai/plan-generator" className="btn-glow">Generate with AI</a>
                         </div>
-                    ))}
+                    ) : (
+                        <div className="flex-1 flex col gap-3">
+                            <a href="/study-plans" className="btn-ghost w-full">View Active Plans &rarr;</a>
+                        </div>
+                    )}
                 </div>
-            )}
+
+                <div>
+                    <h3 className="section-title mb-4">Quick AI Actions</h3>
+                    <div className="grid-2 gap-3" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
+                        <AiFeatureCard title="AI Tutor" description="Chat 24/7" icon="💬" path="/ai/tutor" />
+                        <AiFeatureCard title="Generate Quiz" description="Test knowledge" icon="🎯" path="/ai/quiz" />
+                        <AiFeatureCard title="Summarizer" description="Clean up notes" icon="📝" path="/ai/notes" />
+                        <AiFeatureCard title="Plan Setup" description="Instant roadmap" icon="✨" path="/ai/plan-generator" />
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

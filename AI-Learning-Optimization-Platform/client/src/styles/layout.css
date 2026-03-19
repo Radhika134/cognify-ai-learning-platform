@@ -1,0 +1,243 @@
+/* layout.css */
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 248px;
+  background: rgba(11, 15, 26, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  flex-shrink: 0;
+  overflow: hidden; /* children handle their own scroll */
+}
+
+.sidebar-logo {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gem-icon {
+  background: linear-gradient(135deg, #6C63FF, #00E5C4);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.sidebar-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.sidebar-subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.nav-section {
+  padding: 16px 20px 8px;
+}
+
+.nav-section-title {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 8px;
+  padding-left: 12px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  margin: 4px 12px;
+  border-radius: 10px;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 13.5px;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+
+.nav-item:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+.nav-item.active {
+  background: rgba(108, 99, 255, 0.14);
+  color: var(--accent);
+  border: 1px solid rgba(108, 99, 255, 0.24);
+}
+
+.nav-icon {
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6C63FF, #00E5C4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.user-role {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 30px 34px;
+  height: 100vh;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+}
+
+/* Hamburger button — only visible on mobile */
+.hamburger-btn {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 200;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mobile close button inside sidebar — hidden on desktop */
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.sidebar-close-btn:hover {
+  color: var(--text);
+  background: var(--surface2);
+}
+
+/* Dark overlay behind open sidebar on mobile */
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 90;
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px) {
+  .app-container {
+    flex-direction: column;
+  }
+
+  /* Sidebar hidden off-screen by default on mobile */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Sidebar slides in when .sidebar-open is applied */
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+  }
+
+  .mobile-overlay {
+    display: block;
+  }
+
+  /* Add top padding so content doesn't hide under hamburger */
+  .main-content {
+    padding-top: 64px;
+  }
+}
+

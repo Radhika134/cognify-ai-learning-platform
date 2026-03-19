@@ -1,11 +1,20 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
+
 import AuthPage from './pages/AuthPage';
+import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import StudyPlans from './pages/StudyPlans';
 import Analytics from './pages/Analytics';
-import Sidebar from './components/Sidebar';
+
+import AiTutor from './pages/AiTutor';
+import QuizGenerator from './pages/QuizGenerator';
+import StudyPlanGenerator from './pages/StudyPlanGenerator';
+import NotesSummarizer from './pages/NotesSummarizer';
+import ConceptExplainer from './pages/ConceptExplainer';
+import ProgressCoach from './pages/ProgressCoach';
+
 import { getMe } from './services/api';
 
 function App() {
@@ -24,7 +33,6 @@ function App() {
         localStorage.setItem('userName', res.data.name);
         localStorage.setItem('userEmail', res.data.email);
       } catch {
-        // Token invalid, log out
         handleLogout();
       } finally {
         setAuthLoading(false);
@@ -38,7 +46,6 @@ function App() {
     localStorage.setItem('userName', name);
     setToken(newToken);
     setUserName(name);
-    // Fetch full user info
     getMe().then(res => {
       setUserEmail(res.data.email);
       localStorage.setItem('userEmail', res.data.email);
@@ -56,8 +63,8 @@ function App() {
 
   if (authLoading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg-primary)' }}>
-        <div className="spinner" style={{ width: 48, height: 48, borderWidth: 4 }}></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: 'var(--bg)' }}>
+        <div className="dot"></div><div className="dot"></div><div className="dot"></div>
       </div>
     );
   }
@@ -68,18 +75,23 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="app-layout">
-        <Sidebar userName={userName} userEmail={userEmail} onLogout={handleLogout} />
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard userName={userName} />} />
-            <Route path="/study-plans" element={<StudyPlans />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </main>
-      </div>
+      <Layout userName={userName} userEmail={userEmail} onLogout={handleLogout}>
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard userName={userName} />} />
+          <Route path="/study-plans" element={<StudyPlans />} />
+          <Route path="/analytics" element={<Analytics />} />
+          
+          <Route path="/ai/tutor" element={<AiTutor />} />
+          <Route path="/ai/quiz" element={<QuizGenerator />} />
+          <Route path="/ai/plan-generator" element={<StudyPlanGenerator />} />
+          <Route path="/ai/notes" element={<NotesSummarizer />} />
+          <Route path="/ai/explainer" element={<ConceptExplainer />} />
+          <Route path="/ai/coach" element={<ProgressCoach />} />
+          
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </Layout>
     </BrowserRouter>
   );
 }

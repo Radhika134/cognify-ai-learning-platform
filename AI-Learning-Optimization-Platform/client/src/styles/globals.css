@@ -1,0 +1,125 @@
+:root {
+  --bg: #07090F;
+  --surface: #0D1120;
+  --surface2: #111827;
+  --surface3: #161E30;
+  --border: #1A2236;
+  --border2: #243049;
+  --accent: #6C63FF;       /* primary purple */
+  --accent2: #00E5C4;      /* teal */
+  --accent3: #FF6B6B;      /* red/coral */
+  --accent4: #FFB347;      /* amber */
+  --text: #EEF2FF;
+  --muted: rgba(255,255,255,0.38);
+  --dim: rgba(255,255,255,0.18);
+  
+  --glass-bg:           rgba(255,255,255,0.04);
+  --glass-bg-hover:     rgba(255,255,255,0.07);
+  --glass-border:       rgba(255,255,255,0.08);
+  --glass-border-top:   rgba(255,255,255,0.16);
+  --glass-blur:         blur(24px) saturate(180%);
+  --glass-blur-heavy:   blur(40px) saturate(200%);
+  --glass-shadow:       0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.08);
+  --glass-shadow-sm:    0 4px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+}
+
+body, #root {
+  min-height: 100vh;
+  background: linear-gradient(135deg,
+    #0a0612 0%,
+    #0d0a1a 25%,
+    #060d1a 50%,
+    #0a1208 75%,
+    #12080a 100%
+  );
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+
+h2.page-title {
+  font-size: 25px;
+  margin-bottom: 4px;
+}
+
+.section-title, h3.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  margin-bottom: 16px;
+}
+
+p.page-subtitle, .label-muted {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--muted);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Ambient Background Blobs */
+.blob {
+  position: fixed;
+  z-index: 0;
+  filter: blur(110px);
+  opacity: 0.11;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 550px; height: 550px;
+  background-color: #6C63FF;
+  top: -180px; left: -180px;
+}
+
+.blob-2 {
+  width: 420px; height: 420px;
+  background-color: #00E5C4;
+  bottom: -100px; right: -100px;
+}
+
+.blob-3 {
+  width: 280px; height: 280px;
+  background-color: #FF6B6B;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.blob-4 {
+  width: 200px; height: 200px;
+  background-color: #FFB347;
+  top: 10%; right: 20%;
+}
